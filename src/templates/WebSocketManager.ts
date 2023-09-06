@@ -7,7 +7,7 @@ export default class WebSocketManager {
   url: string;
   emitter: Vue;
   reconnectInterval: number;
-  ws: WebSocket;
+  ws?: WebSocket;
 
   /**
    * Constructor function for the WebSocketManager class.
@@ -21,8 +21,6 @@ export default class WebSocketManager {
     this.url = url
     this.emitter = emitter
     this.reconnectInterval = reconnectInterval
-    this.ws = new WebSocket(this.url)
-    this.connect()
   }
 
   /**
@@ -66,7 +64,7 @@ export default class WebSocketManager {
     this.ws.onerror = (error): void => {
       // eslint-disable-next-line no-console
       console.error(error)
-      this.ws.close()
+      this.ws?.close()
     }
   }
 
@@ -78,8 +76,8 @@ export default class WebSocketManager {
    */
   ready (): Promise<void> {
     return new Promise<void>((resolve) => {
-      if (this.ws.readyState !== this.ws.OPEN) {
-        this.ws.onopen = () => {
+      if (this.ws?.readyState !== this.ws?.OPEN) {
+        this.ws!.onopen = () => {
           this.reconnectInterval = 1000
           resolve()
         }
@@ -97,9 +95,8 @@ export default class WebSocketManager {
    */
   async send (message: string | Record<string, unknown>): Promise<void> {
     await this.ready()
-    const parsedMessage =
-      typeof message === 'string' ? message : JSON.stringify(message)
-    return this.ws.send(parsedMessage)
+    const parsedMessage = typeof message === 'string' ? message : JSON.stringify(message)
+    return this.ws?.send(parsedMessage)
   }
 
   /**
@@ -110,6 +107,8 @@ export default class WebSocketManager {
    * @returns {void} Returns with no return value once the connection is closed.
    */
   close (code?: number | undefined, reason?: string | undefined): void {
-    this.ws.close(code, reason)
+    if (this.ws) {
+      this.ws.close(code, reason)
+    }
   }
 }
